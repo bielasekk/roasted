@@ -1,0 +1,10 @@
+{
+  "name": "Roasted",
+  "description": "Cyberbullying prevention app",
+  "version": "1.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "roasted.html",
+    "default_icon": "roasted.png"
+  }
+}
