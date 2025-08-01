@@ -1,0 +1,167 @@
+# import pandas as pd
+# from sklearn.preprocessing import LabelEncoder
+# from datasets import Dataset
+
+
+# # Load and prepare data
+# df = pd.read_csv("cyberbullying_tweets.csv")
+
+# # Clean missing data
+# df = df.dropna(subset=["tweet_text", "cyberbullying_type"])
+
+# # Encode labels
+# le = LabelEncoder()
+# df['label_id'] = le.fit_transform(df['cyberbullying_type'])
+
+# # Convert to HuggingFace dataset
+# dataset = Dataset.from_pandas(df[['tweet_text', 'label_id']])
+# dataset = dataset.train_test_split(test_size=0.2)
+
+# from transformers import DistilBertTokenizerFast
+
+# tokenizer = DistilBertTokenizerFast.from_pretrained("distilbert-base-uncased")
+
+# def tokenize(example):
+#     return tokenizer(example["tweet_text"], truncation=True, padding="max_length", max_length=128)
+
+# dataset = dataset.map(tokenize)
+
+# from transformers import DistilBertForSequenceClassification
+
+# num_labels = len(le.classes_)
+# model = DistilBertForSequenceClassification.from_pretrained(
+#     "distilbert-base-uncased", 
+#     num_labels=num_labels
+# )
+
+# from transformers import Trainer, TrainingArguments
+
+# training_args = TrainingArguments(
+#     output_dir="./results",
+#     evaluation_strategy="epoch",
+#     save_strategy="epoch",
+#     num_train_epochs=4,
+#     per_device_train_batch_size=16,
+#     per_device_eval_batch_size=16,
+#     logging_dir="./logs",
+#     logging_steps=10,
+#     load_best_model_at_end=True,
+#     metric_for_best_model="accuracy"
+# )
+
+# from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+
+# def compute_metrics(eval_pred):
+#     logits, labels = eval_pred
+#     preds = logits.argmax(-1)
+#     return {
+#         "accuracy": accuracy_score(labels, preds),
+#         "f1": f1_score(labels, preds, average="weighted"),
+#         "precision": precision_score(labels, preds, average="weighted"),
+#         "recall": recall_score(labels, preds, average="weighted"),
+#     }
+
+# trainer = Trainer(
+#     model=model,
+#     args=training_args,
+#     train_dataset=dataset["train"],
+#     eval_dataset=dataset["test"],
+#     tokenizer=tokenizer,
+#     compute_metrics=compute_metrics
+# )
+
+# trainer.train()
+
+# model.save_pretrained("cyberbullying-bert-model")
+# tokenizer.save_pretrained("cyberbullying-bert-model")
+
+# import joblib
+# joblib.dump(le, "label_encoder.pkl")
+
+# ---------------------
+
+# import pandas as pd
+# import re
+# from sklearn.linear_model import LogisticRegression
+# from sklearn.preprocessing import LabelEncoder
+# from sklearn.metrics import classification_report
+# from sklearn.model_selection import train_test_split
+# from sklearn.feature_extraction.text import TfidfVectorizer
+# import sys
+
+# def clean_text(text):
+#     text = text.lower()
+#     text = re.sub(r'http\S+|@\w+|#\w+|[^a-zA-Z\s]', '', text)  # Remove URLs, mentions, hashtags, punctuation
+#     return text
+
+# df = pd.read_csv("cyberbullying_tweets.csv")
+# df['clean_text'] = df['text'].apply(clean_text)
+
+# le = LabelEncoder()
+# df['label_encoded'] = le.fit_transform(df['label'])
+
+# X_train, X_test, y_train, y_test = train_test_split(df['clean_text'], df['label_encoded'])
+
+# vectorizer = TfidfVectorizer(max_features=5000, ngram_range=(1,2))
+# X_train_tfidf = vectorizer.fit_transform(X_train)
+# X_test_tfidf = vectorizer.transform(X_test)
+
+# model = LogisticRegression(max_iter=1000)
+# model.fit(X_train_tfidf, y_train)
+
+# y_pred = model.predict(X_test_tfidf)
+# print(classification_report(y_test, y_pred, target_names=le.classes_))
+
+# def predict_label(text):
+#     clean = clean_text(text)
+#     vectorized = vectorizer.transform([clean])
+#     pred = model.predict(vectorized)[0]
+#     label = le.inverse_transform([pred])[0]
+#     return f"Detected label: {label}"
+
+# if __name__ == "__main__":
+#     text = input("Enter a message: ")
+#     print(predict_label(text))
+
+# ---------------------
+
+
+# import pandas as pd
+# import re
+# from sklearn.model_selection import train_test_split
+# from sklearn.feature_extraction.text import TfidfVectorizer
+# from sklearn.linear_model import LogisticRegression
+# from sklearn.metrics import classification_report
+# import sys
+
+# def clean_text(text):
+#     text = text.lower()
+#     text = re.sub(r'http\S+|@\w+|#\w+|[^a-zA-Z\s]', '', text)  # Remove URLs, mentions, hashtags, punctuation
+#     return text
+
+# df = pd.read_csv("cyberbullying_tweets.csv")
+# df['clean_text'] = df['text'].apply(clean_text)
+
+
+# X_train, X_test, y_train, y_test = train_test_split(
+#     df['clean_text'], df['label'], test_size=0.2, random_state=42)
+
+# vectorizer = TfidfVectorizer(max_features=5000)
+# X_train_tfidf = vectorizer.fit_transform(X_train)
+# X_test_tfidf = vectorizer.transform(X_test)
+
+# model = LogisticRegression()
+# model.fit(X_train_tfidf, y_train)
+
+# print(classification_report(y_test, model.predict(X_test_tfidf)))
+
+# def predict_cyberbullying(input_text):
+#     cleaned = clean_text(input_text)
+#     vectorized = vectorizer.transform([cleaned])
+#     prediction = model.predict(vectorized)[0]
+#     return "Cyberbullying" if prediction == 1 else "Not Cyberbullying"
+
+# if __name__ == "__main__":
+#     input_text = input("Enter a message: ")
+#     print(predict_cyberbullying(input_text))
+
