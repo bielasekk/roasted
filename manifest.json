@@ -3,8 +3,19 @@
   "description": "Cyberbullying prevention app",
   "version": "1.0",
   "manifest_version": 3,
+  "permissions": [
+    "notifications",
+    "storage"
+  ],
   "action": {
     "default_popup": "roasted.html",
     "default_icon": "roasted.png"
+  },
+  "host_permissions": [
+    "http://localhost:5001/*",
+    "http://127.0.0.1:5001/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src http://localhost:5001 http://127.0.0.1:5001"
   }
 }

@@ -1,0 +1,54 @@
+
+# import requests
+# import os
+# from dotenv import load_dotenv
+
+# load_dotenv()
+
+# API_KEY = os.getenv("IBM_API_KEY")
+# if not API_KEY:
+#     raise ValueError("IBM_API_KEY environment variable not set")
+
+# token_response = requests.post('https://iam.cloud.ibm.com/identity/token', data={"apikey": API_KEY, "grant_type": 'urn:ibm:params:oauth:grant-type:apikey'})
+# mltoken = token_response.json()["access_token"]
+
+# header = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + mltoken}
+# text = input("Enter text to analyze: ")
+# # NOTE:  manually define and pass the array(s) of values to be scored in the next line
+# payload_scoring = {"input_data": [
+# 	{
+# 		"fields": ["tweet_text"],
+#         "values": [[text]]
+# 	}
+# ]}
+
+# response_scoring = requests.post('https://eu-gb.ml.cloud.ibm.com/ml/v4/deployments/36d72ea0-697b-4b37-9bd5-0a0d0a0be988/predictions?version=2021-05-01',
+#     json=payload_scoring,
+#     headers=header,
+#     timeout=10  # 10 seconds max
+# )
+# print("Scoring response")
+# try:
+#     response_json = response_scoring.json()
+
+#     # Extract prediction data
+#     pred_data = response_json['predictions'][0]
+#     fields = pred_data['fields']
+#     values = pred_data['values'][0]
+
+#     predicted_label = values[0]
+#     probabilities = values[1]
+
+#     # Convert probabilities to percentages
+#     percentages = [p * 100 for p in probabilities]
+
+#     # Print results nicely
+#     print(f"Predicted class: {predicted_label}\nProbabilities:")
+#     class_names = ["age", "ethnicity", "gender", "not_cyberbullying", "other_cyberbullying", "religion"]
+#     for i, pct in enumerate(percentages):
+#         print(f"  {class_names[i]}: {pct:.2f}%")
+
+# except ValueError:
+#     print(response_scoring.text)
+# except Exception as e:
+#     print(f"An unexpected error occurred: {e}")
