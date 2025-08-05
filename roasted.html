@@ -151,6 +151,38 @@
       line-height: 1;
       padding: 0;
     }
+
+    input[type="text"] {
+      width: 100%;
+      border-radius: 8px;
+      padding: 8px;
+      border: 1px solid var(--text-color);
+      box-sizing: border-box;
+      font-size: 1em;
+      color: var(--text-color);
+      background-color: var(--card-color);
+      margin-bottom: 10px;
+}
+
+  #notificationBox {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    background-color: var(--card-color);
+    color: var(--text-color);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    display: none;
+    text-align: center;
+    animation: fadeInOut 4s ease-in-out forwards;
+  }
+
+  @keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(10px); }
+    10% { opacity: 1; transform: translateY(0); }
+    90% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-10px); }
+  }
   .tooltip {
     position: relative;
     display: inline-block;
@@ -226,6 +258,19 @@
   <p id="resultText">No analysis yet.</p>
   </div>
 
+  <h3>Report Cyberbullying</h3>
+  <textarea id="reportText" placeholder="Paste message you want to report..."></textarea>
+  <input type="text" id="abusiveAuthor" placeholder="Who wrote the message?" />
+  <!-- <input type="text" id="platform" placeholder="Platform (e.g. Instagram, WhatsApp)" /> -->
+  <div>
+   <input type="text" id="username" placeholder="Your name (optional)">
+   <!-- <label><input type="checkbox" id="reportAnonymously"> Report anonymously</label> -->
+  </div>
+  <button id="submitReportBtn">Report</button>
+  <div id="notificationBox" style="display:none;"></div>
+
+  <button id="learnMoreBtn" type="button">Learn more about cyberbullying</button>
+
   <div class="toggle-container">
     <span>Allow anti-cyberbullying suggestions</span>
     <label class="toggle">
@@ -253,7 +298,6 @@
       </span>
     </span>
   </div>
-  <button id="learnMoreBtn" type="button">Learn more about cyberbullying</button>
   <script src="popup.js"></script>
 </body>
 </html>

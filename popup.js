@@ -5,6 +5,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultText = document.getElementById("resultText");
   const resultIcon = document.getElementById("resultIcon");
   const resultBox = document.getElementById("resultBox");
+  const reportText = document.getElementById("reportText");
+  const submitReportBtn = document.getElementById("submitReportBtn");
+
 
 function showResult(message, isSafe) {
 
@@ -103,6 +106,72 @@ analyzeBtn.addEventListener("click", async () => {
   closeBtn.addEventListener("click", () => {
     resultBox.style.display = "none";
   });
+
+  function showNotification(message, isSuccess = true) {
+  const box = document.getElementById("notificationBox");
+  box.textContent = message;
+  box.style.backgroundColor = isSuccess ? "#c8e6c9" : "#ffcdd2"; // light green or red
+  box.style.color = isSuccess ? "#256029" : "#b71c1c";
+  box.style.display = "block";
+
+  setTimeout(() => {
+    box.style.display = "none";
+  }, 4000);
+}
+
+  submitReportBtn.addEventListener("click", async () => {
+    const reportTextValue = reportText.value.trim();
+    if (!reportTextValue) {
+    showNotification("Please enter text to report.", false); 
+    return;
+  }
+  
+    // const anonymous = document.getElementById("reportAnonymously").checked;
+    const usernameInput = document.getElementById("username").value.trim();
+    const abusiveAuthor = document.getElementById("abusiveAuthor").value.trim();
+    // const platform = document.getElementById("platform").value.trim();
+    const reporter = usernameInput ? usernameInput : "Anonymous";
+
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      if (!tabs[0] || !tabs[0].url) {
+        showNotification("Unable to determine platform.", false);
+        return;
+      }
+
+      const url = tabs[0].url || "Unknown URL";
+      // const domain = new URL(url).hostname || "Unknown Domain";
+      // document.getElementById("platform").value = domain;
+
+      // ✅ Now submit the report (inside this callback)
+      fetch("http://localhost:5001/report", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          reportTextValue,
+          reporter,
+          abusiveAuthor,
+          // domain: domain,
+          url: url
+        })
+      })
+        .then(res => res.json())
+        .then(data => {
+          showNotification("Report submitted. Thank you!", true);
+          document.getElementById("reportText").value = "";
+          document.getElementById("abusiveAuthor").value = "";
+          // document.getElementById("platform").value = "";
+          document.getElementById("username").value = "";
+          // document.getElementById("reportAnonymously").checked = false;
+        })
+        .catch(err => {
+          console.error(err);
+          showNotification("Error submitting report.", false);
+        });
+  });
+});
+
 
   const learnMoreBtn = document.getElementById('learnMoreBtn');
   learnMoreBtn.addEventListener('click', function () {

@@ -4,10 +4,13 @@ import os
 import requests
 import re
 from dotenv import load_dotenv
+# from datetime import datetime, timezone
+import sqlite3
 
 load_dotenv()
 
 app = Flask(__name__)
+DB_PATH = 'roasted.db'
 
 # Configure CORS - allow all for development
 CORS(app, resources={
@@ -121,7 +124,74 @@ def predict():
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({"error": str(e)}), 500
+    
+# In-memory store (replace later with a real DB)
+# reports = []
+
+@app.route('/report', methods=['POST'])
+def report():
+    try:
+        # data = request.get_json()
+        # print("Received report payload:", data)
+        # text = data.get("reportTextValue", "").strip()
+        # reporter = data.get("reporter", "").strip()
+        # abusive_author = data.get("abusiveAuthor", "").strip()
+        # # platform = data.get("platform", "").strip()
+        # url = data.get("url", "").strip()  # Use URL as platform
+        # domain = data.get("domain", "").strip()  # Use domain as platform
+
+        # if not text:
+        #     return jsonify({"error": "Text is required"}), 400
+
+        # report_entry = {
+        #     "text": text,
+        #     "reporter": reporter if reporter else "Anonymous",
+        #     "abusive_author": abusive_author if abusive_author else "Unknown",
+        #     # "platform": platform if platform else "Unknown",
+        #     "url": url if url else "Unknown",
+        #     "domain": domain if domain else "Unknown",
+        #     "timestamp": datetime.now(timezone.utc).isoformat()
+        # }
+
+        # # Save it (just in memory for now)
+        # reports.append(report_entry)
+
+        # # Later: Save to DB (e.g. Firebase, MongoDB, PostgreSQL)
+        # print(f"Received report: {report_entry}")
+        # return jsonify({"success": True}), 200
+        data = request.get_json()
+        report_text = data.get('reportTextValue')
+        reporter = data.get('reporter') or 'Anonymous'
+        abusive_author = data.get('abusiveAuthor') or 'Unknown'
+        url = data.get('url') or 'Unknown'
+
+        if not report_text:
+            return jsonify({'error': 'Missing report text'}), 400
+
+        print("Inserting report with values:")
+        print(f"Text: {report_text}, Reporter: {reporter}, Author: {abusive_author}, URL: {url}")
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute('''
+                INSERT INTO reports (report_text, reporter, abusive_author, url)
+                VALUES (?, ?, ?, ?)
+            ''', (report_text, reporter, abusive_author, url))
+            conn.commit()
+            for row in c.fetchall():
+                print(row)
+        except sqlite3.Error as e:
+            print(f"Database error: {str(e)}")
+            return jsonify({"error": "Database error"}), 500
+        finally:
+            conn.close()
+
+
+        return jsonify({"message": "Report stored successfully"}), 200
+
+    except Exception as e:
+        print(f"Report error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 if __name__ == '__main__':
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1", "yes")
     app.run(host='0.0.0.0', port=5001, debug=debug_mode)
-    app.run(host='0.0.0.0', port=5001, debug=True) 
