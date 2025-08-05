@@ -133,6 +133,12 @@
       text-align: left; 
     }
 
+    #resultText {
+      white-space: normal; 
+      line-height: 1.5;
+      font-size: 12px;
+    }
+
     #closeResult {
       position: absolute;
       top: 0px;
@@ -145,6 +151,62 @@
       line-height: 1;
       padding: 0;
     }
+  .tooltip {
+    position: relative;
+    display: inline-block;
+  }
+
+  .tooltiptext {
+    visibility: hidden;
+    width: 250px;
+    background-color: #333;
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 13px;
+    line-height: 1.4;
+    pointer-events: none;
+  }
+
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .icon {
+    vertical-align: middle;
+    cursor: pointer;
+    margin-left: 5px;
+    fill: #999;
+  }
+
+  .icon:hover {
+    fill: #ccc;
+  }
+
+  .icon {
+  vertical-align: middle;
+}
+
+  .safe-icon {
+    margin-bottom: 5px;
+    display: inline-block;
+    stroke: green;
+}
+
+  .flagged-icon {
+  margin-bottom: 5px;
+  display: inline-block;
+  stroke: red;
+}
   </style>
 </head>
 
@@ -159,6 +221,7 @@
 
   <div id="resultBox">
   <button id="closeResult">×</button>
+  <div id="resultIcon"></div>
   <strong>Prediction:</strong>
   <p id="resultText">No analysis yet.</p>
   </div>
@@ -179,9 +242,18 @@
     </label>
   </div>
 
-  <button id="howItWorksBtn" type="button">How Does It Work</button>
+  <div id="howItWorksContainer">
+    <span>How does it work?</span>
+    <span class="tooltip">
+      <svg class="icon info-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2zm.75 15h-1.5v-6h1.5v6zm0-8h-1.5V7h1.5v2z"/>
+      </svg>
+      <span class="tooltiptext">
+        We use AI to analyze messages and predict whether they contain potential cyberbullying, including categories like age, gender, and ethnicity.
+      </span>
+    </span>
+  </div>
   <button id="learnMoreBtn" type="button">Learn more about cyberbullying</button>
-  <button id="openSettingsBtn"> Open API key settings</button>
   <script src="popup.js"></script>
 </body>
 </html>
