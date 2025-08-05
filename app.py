@@ -2,11 +2,15 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 import requests
+import re
 from dotenv import load_dotenv
+# from datetime import datetime, timezone
+import sqlite3
 
 load_dotenv()
 
 app = Flask(__name__)
+DB_PATH = 'roasted.db'
 
 # Configure CORS - allow all for development
 CORS(app, resources={
@@ -41,6 +45,7 @@ def get_access_token():
         print(f"Token error: {str(e)}")
         raise
 
+# The /product endpoint is provided for compatibility with a specific extension's request format.
 @app.route('/product', methods=['POST'])  # Add this endpoint
 def product():
     """Endpoint that matches your extension's request"""
@@ -81,14 +86,112 @@ def predict():
         
         result = response.json()
         prediction = result['predictions'][0]['values'][0]
+        label = prediction[0]
+        probabilities = prediction[1]
+        labels = ['age', 'ethnicity', 'gender', 'not_cyberbullying', 'other_cyberbullying', 'religion']
+
+        # Pronoun boost (if cyberbullying label and contains pronouns)
+        pronouns = ['you', 'he', 'she', 'they']
+        lower_text = text.lower()
+        pronoun_pattern = r'\b(?:' + '|'.join(map(re.escape, pronouns)) + r')\b'
+        contains_target = re.search(pronoun_pattern, lower_text) is not None
+
+        cyberbullying_labels = [lbl for lbl in labels if lbl != 'not_cyberbullying']
+        if label in cyberbullying_labels and contains_target:
+            idx = labels.index(label)
+            probabilities[idx] *= 1.1  # Boost by 10%
+            total = sum(probabilities)
+            probabilities = [round(p / total, 6) for p in probabilities]  # Normalize
+
+        # Step 2: Reduce overuse of 'other_cyberbullying' if low confidence
+        if label == 'other_cyberbullying':
+            other_idx = labels.index('other_cyberbullying')
+            if probabilities[other_idx] < 0.6:  # Threshold for low confidence
+                # Find second-highest probability label
+                # Select the second-highest probability label if 'other_cyberbullying' is predicted with low confidence
+                second_idx = sorted(
+                    range(len(probabilities)), 
+                    key=lambda i: probabilities[i], 
+                    reverse=True
+                )[1]
+                label = labels[second_idx]
+
         return jsonify({
-            "label": prediction[0],
-            "probabilities": prediction[1]
+            "label": label,
+            "probabilities": probabilities
         })
 
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({"error": str(e)}), 500
+    
+# In-memory store (replace later with a real DB)
+# reports = []
 
+@app.route('/report', methods=['POST'])
+def report():
+    try:
+        # data = request.get_json()
+        # print("Received report payload:", data)
+        # text = data.get("reportTextValue", "").strip()
+        # reporter = data.get("reporter", "").strip()
+        # abusive_author = data.get("abusiveAuthor", "").strip()
+        # # platform = data.get("platform", "").strip()
+        # url = data.get("url", "").strip()  # Use URL as platform
+        # domain = data.get("domain", "").strip()  # Use domain as platform
+
+        # if not text:
+        #     return jsonify({"error": "Text is required"}), 400
+
+        # report_entry = {
+        #     "text": text,
+        #     "reporter": reporter if reporter else "Anonymous",
+        #     "abusive_author": abusive_author if abusive_author else "Unknown",
+        #     # "platform": platform if platform else "Unknown",
+        #     "url": url if url else "Unknown",
+        #     "domain": domain if domain else "Unknown",
+        #     "timestamp": datetime.now(timezone.utc).isoformat()
+        # }
+
+        # # Save it (just in memory for now)
+        # reports.append(report_entry)
+
+        # # Later: Save to DB (e.g. Firebase, MongoDB, PostgreSQL)
+        # print(f"Received report: {report_entry}")
+        # return jsonify({"success": True}), 200
+        data = request.get_json()
+        report_text = data.get('reportTextValue')
+        reporter = data.get('reporter') or 'Anonymous'
+        abusive_author = data.get('abusiveAuthor') or 'Unknown'
+        url = data.get('url') or 'Unknown'
+
+        if not report_text:
+            return jsonify({'error': 'Missing report text'}), 400
+
+        print("Inserting report with values:")
+        print(f"Text: {report_text}, Reporter: {reporter}, Author: {abusive_author}, URL: {url}")
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute('''
+                INSERT INTO reports (report_text, reporter, abusive_author, url)
+                VALUES (?, ?, ?, ?)
+            ''', (report_text, reporter, abusive_author, url))
+            conn.commit()
+            for row in c.fetchall():
+                print(row)
+        except sqlite3.Error as e:
+            print(f"Database error: {str(e)}")
+            return jsonify({"error": "Database error"}), 500
+        finally:
+            conn.close()
+
+
+        return jsonify({"message": "Report stored successfully"}), 200
+
+    except Exception as e:
+        print(f"Report error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True) 
+    debug_mode = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1", "yes")
+    app.run(host='0.0.0.0', port=5001, debug=debug_mode)
