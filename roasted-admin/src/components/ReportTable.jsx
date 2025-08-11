@@ -1,51 +1,110 @@
 import React, { useEffect, useState } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { CircularProgress, Paper, Typography } from '@mui/material';
-import { Box, Button, TextField } from '@mui/material';
+import { CircularProgress, Paper, Typography, Box, Button, TextField, IconButton } from '@mui/material';
+import FlagIcon from '@mui/icons-material/Flag';
+import FlagOutlinedIcon from '@mui/icons-material/OutlinedFlag';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 const ReportTable = () => {
   const [reports, setReports] = useState([]);
+  const [filteredReports, setFilteredReports] = useState([]);
+  const [searchText, setSearchText] = useState('');
+  const [selectedRows, setSelectedRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchReports = () => {
+    setLoading(true);
     fetch('http://localhost:5002/api/reports')
       .then((res) => res.json())
       .then((data) => {
-        // Map reports to DataGrid rows 
-        const mappedReports = data.map((r) => ({
-          id: r.id,
-          text: r.text,
-          reporter: r.reporter,
-          abusive_author: r.abusive_author,
-          url: r.url,
-          timestamp: r.timestamp,
-        }));
-        setReports(mappedReports);
+        setReports(data);
+        setFilteredReports(data);
         setLoading(false);
       })
       .catch((err) => {
         console.error(err);
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchReports();
   }, []);
+
+  const handleSearch = () => {
+    const lower = searchText.toLowerCase();
+    setFilteredReports(
+      reports.filter((r) =>
+        Object.values(r).some((val) =>
+          String(val).toLowerCase().includes(lower)
+        )
+      )
+    );
+  };
+
+  const handleClearSearch = () => {
+    setSearchText('');
+    setFilteredReports(reports);
+  };
+
+  const toggleFlag = async (id) => {
+    try {
+      await fetch(`http://localhost:5002/api/reports/flag/${id}`, { method: 'POST' });
+      fetchReports();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedRows.length === 0) return;
+    if (!window.confirm(`Delete reports: ${selectedRows.join(', ')}?`)) return;
+    try {
+      await fetch('http://localhost:5002/api/reports', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedRows }),
+      });
+      setSelectedRows([]);
+      fetchReports();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 70 },
     { field: 'text', headerName: 'Text', width: 250 },
     { field: 'reporter', headerName: 'Reporter', width: 150 },
     { field: 'abusive_author', headerName: 'Abusive Author', width: 150 },
-    { field: 'url', headerName: 'URL', width: 180 },
-    // {
-    //   field: 'url',
-    //   headerName: 'URL',
-    //   width: 180,
-    //   renderCell: (params) => (
-    //     <a href={params.value} target="_blank" rel="noopener noreferrer">
-    //       Link
-    //     </a>
-    //   ),
-    // },
+    {
+  field: 'url',
+  headerName: 'Link',
+  width: 140,
+  renderCell: (params) => (
+    <Button
+      variant="outlined"
+      size="small"
+      endIcon={<OpenInNewIcon />}
+      onClick={() => window.open(params.value, '_blank', 'noopener,noreferrer')}
+    >
+      Open
+    </Button>
+  ),
+},
     { field: 'timestamp', headerName: 'Timestamp', width: 180 },
+    {
+      field: 'flag',
+      headerName: 'Flag',
+      width: 80,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <IconButton onClick={() => toggleFlag(params.row.id)} color={params.value ? 'error' : 'default'}>
+          {params.value ? <FlagIcon /> : <FlagOutlinedIcon />}
+        </IconButton>
+      ),
+    },
   ];
 
   if (loading) return <CircularProgress />;
@@ -55,70 +114,51 @@ const ReportTable = () => {
       <Typography variant="h6" gutterBottom>
         Reported Posts
       </Typography>
-      {/* Header controls row */}
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 2,
-        }}
-      >
+
+      {/* Controls */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <TextField
             size="small"
             variant="outlined"
             placeholder="Search reports..."
-          //   value={searchText}
-          //   onChange={(e) => setSearchText(e.target.value)}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
           />
-        <Button
-            variant="contained"
-            color="primary"
-          >
+          <Button variant="contained" onClick={handleSearch}>
             Search
+          </Button>
+          <Button variant="outlined" onClick={handleClearSearch} disabled={!searchText}>
+            Clear
           </Button>
         </Box>
 
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button
-            variant="contained"
-            color="primary"
-            // disabled={selectedRows.length === 0}
-            // onClick={() => {
-            //   const selected = reports.find((r) => r.id === selectedRows[0]);
-            //   if (selected?.url) {
-            //     window.open(selected.url, '_blank');
-            //   }
-            // }}
-          >
-            View in Context
-          </Button>
-          <Button
             variant="outlined"
             color="error"
-            // disabled={selectedRows.length === 0}
-            // onClick={() => {
-            //   const ids = selectedRows.join(', ');
-            //   alert(`Delete reports: ${ids}`);
-            //   // You could also send a DELETE request here
-            // }}
+            disabled={selectedRows.length === 0}
+            onClick={handleDelete}
           >
             Delete
           </Button>
         </Box>
       </Box>
+
+      {/* Data Table */}
       <DataGrid
-        rows={reports}
+        rows={filteredReports}
         columns={columns}
         pageSizeOptions={[5, 10, 25]}
         initialState={{
-          pagination: {
-            paginationModel: { page: 0, pageSize: 5 },
-          },
+          pagination: { paginationModel: { page: 0, pageSize: 5 } },
         }}
         checkboxSelection
         disableRowSelectionOnClick
+        onRowSelectionModelChange={(newSelection) => {
+            const selectedIds = Array.from(newSelection.ids || []);
+            setSelectedRows(selectedIds);
+        }}
       />
     </Paper>
   );
