@@ -4,7 +4,6 @@ import os
 import requests
 import re
 from dotenv import load_dotenv
-# from datetime import datetime, timezone
 import sqlite3
 
 load_dotenv()
@@ -46,7 +45,7 @@ def get_access_token():
         raise
 
 # The /product endpoint is provided for compatibility with a specific extension's request format.
-@app.route('/product', methods=['POST'])  # Add this endpoint
+@app.route('/product', methods=['POST'])
 def product():
     """Endpoint that matches your extension's request"""
     return predict()

@@ -5,21 +5,17 @@ import Sidebar from './Sidebar';
 import Header from './Header';
 import Statistics from './Statistics';
 
-const Dashboard = ({ children }) => {
-  const isLoggedIn = true;
-  const handleLoginToggle = () => {};
+const Dashboard = ({ children, isLoggedIn, onLoginToggle }) => {
   return (
     <Box sx={{ display: 'flex' }}>
-      <Header isLoggedIn={isLoggedIn} onLoginToggle={handleLoginToggle} />
+      <Header isLoggedIn={isLoggedIn} onLoginToggle={onLoginToggle} />
       <Sidebar />
 
       {/* Main content area */}
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <Toolbar />
-        <ReportTable />
-        <Statistics />
+        {children}
       </Box>
-
     </Box>
   );
 };

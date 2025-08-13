@@ -1,18 +1,32 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, session
 import sqlite3
 from flask_cors import CORS
 from collections import defaultdict
 import datetime
+import bcrypt
+from database import init_db
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DB_PATH = "roasted.db"
 
 app = Flask(__name__)
-CORS(app)  # Allow React frontend to access API
+app.secret_key = os.environ.get("FLASK_SECRET_KEY")
+CORS(app, supports_credentials=True)  # Allow React frontend to access API
+
+init_db()
+
+def get_db_connection():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 @app.route('/api/reports', methods=['GET'])
 def get_reports():
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db_connection()
         c = conn.cursor()
         c.execute("SELECT id, report_text, reporter, abusive_author, url, timestamp, flag FROM reports ORDER BY id DESC")
         reports = c.fetchall()
@@ -36,7 +50,7 @@ def get_reports():
 @app.route('/api/reports/flag/<int:report_id>', methods=['POST'])
 def toggle_flag(report_id):
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db_connection()
         c = conn.cursor()
         # Get current flag value
         c.execute("SELECT flag FROM reports WHERE id = ?", (report_id,))
@@ -59,7 +73,7 @@ def delete_reports():
         ids = data.get('ids', [])
         if not ids:
             return jsonify({"error": "No IDs provided"}), 400
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db_connection()
         c = conn.cursor()
         # Use placeholders for safety
         c.execute(f"DELETE FROM reports WHERE id IN ({','.join(['?']*len(ids))})", ids)
@@ -72,7 +86,7 @@ def delete_reports():
 @app.route('/api/reports/stats', methods=['GET'])
 def get_report_stats():
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db_connection()
         c = conn.cursor()
         
         # Get current date (no time)
@@ -106,6 +120,31 @@ def get_report_stats():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    conn = get_db_connection()
+    user = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+    conn.close()
+
+    if user and bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
+        session['user'] = username  # store user in session
+        return jsonify(success=True)
+    else:
+        return jsonify(success=False, message="Invalid credentials"), 401
+
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    session.pop('user', None)
+    return jsonify(success=True)
+
+@app.route('/api/check-session', methods=['GET'])
+def check_session():
+    return jsonify(logged_in=('user' in session), user=session.get('user'))
 
 if __name__ == '__main__':
     app.run(port=5002, debug=True)

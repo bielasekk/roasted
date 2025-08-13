@@ -22,30 +22,32 @@ const Header = ({ isLoggedIn, onLoginToggle }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Avatar
             variant="square"
-            sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}
-          >
-            🍗
-          </Avatar>
+            src="/roasted.png"
+            alt="Roasted Logo"
+            sx={{ width: 32, height: 32 }}
+          />
           <Typography variant="h6" noWrap component="div">
             Roasted
           </Typography>
         </Box>
 
-        {/* Right: Login / Logout */}
-        <Button
-          color="inherit"
-          onClick={onLoginToggle}
-          variant="outlined"
-          sx={{
-            borderColor: 'white',
-            color: 'white',
-            '&:hover': {
-              borderColor: 'lightgray',
-            },
-          }}
-        >
-          {isLoggedIn ? 'Log Out' : 'Log In'}
-        </Button>
+        {/* Right: Logout only when logged in */}
+        {isLoggedIn && (
+          <Button
+            color="inherit"
+            onClick={onLoginToggle}
+            variant="outlined"
+            sx={{
+              borderColor: 'white',
+              color: 'white',
+              '&:hover': {
+                borderColor: 'lightgray',
+              },
+            }}
+          >
+            Log Out
+          </Button>
+        )}
       </Toolbar>
     </AppBar>
   );
