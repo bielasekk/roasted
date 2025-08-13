@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from "./components/Dashboard";
 import ReportTable from "./components/ReportTable";
 import Statistics from "./components/Statistics";
 import LoginPage from './components/Login';  
+import ExtendedReports from './components/ExtendedReports';
+import ExtendedStatistics from './components/ExtendedStatistics';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(null);
 
-  // Check session on first load
   useEffect(() => {
     fetch("http://localhost:5002/api/check-session", { credentials: "include" })
       .then(res => res.json())
@@ -23,15 +25,28 @@ function App() {
     }).then(() => setIsLoggedIn(false));
   };
 
-  return isLoggedIn ? (
-    <>
-      <Dashboard isLoggedIn={isLoggedIn} onLoginToggle={handleLogout}>
-        <ReportTable />
-        <Statistics />  
-      </Dashboard>
-    </>
-  ) : (
-    <LoginPage isLoggedIn={isLoggedIn} onLoginToggle={handleLogin} />
+  if (isLoggedIn === null) return <div>Loading...</div>;
+
+  return (
+    <Router>
+      {isLoggedIn ? (
+        <Dashboard isLoggedIn={isLoggedIn} onLoginToggle={handleLogout}>
+          <Routes>
+            <Route path="/" element={
+              <>
+                <ReportTable />
+                <Statistics />  
+              </>
+            } />
+            <Route path="/reports" element={<ExtendedReports />} />
+            <Route path="/statistics" element={<ExtendedStatistics />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </Dashboard>
+      ) : (
+        <LoginPage isLoggedIn={isLoggedIn} onLoginToggle={handleLogin} />
+      )}
+    </Router>
   );
 }
 

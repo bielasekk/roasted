@@ -112,7 +112,7 @@ const ReportTable = () => {
   return (
     <Paper sx={{ width: '100%', p: 2 }}>
       <Typography variant="h6" gutterBottom>
-        Reported Posts
+        Reports
       </Typography>
 
       {/* Controls */}
