@@ -1,36 +1,33 @@
 console.log("X.com post observer loaded");
 
-// ====== Create a floating result box ======
+// ====== Create inline result box (hidden by default) ======
 const postResultBox = document.createElement("div");
 postResultBox.id = "postResultBox";
 postResultBox.style.cssText = `
-  position: fixed !important;
-  bottom: 20px !important;
-  right: 20px !important;
-  max-width: 320px !important;
-  padding: 16px !important;
-  background-color: #ffffff !important;
-  color: #000000 !important;
-  font-family: Arial, sans-serif !important;
-  font-size: 14px !important;
-  border: 1px solid #ccc !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
-  z-index: 999999 !important;
+  margin: 8px 0;
+  padding: 12px;
+  background-color: rgba(244, 33, 46, 0.1);
+  color: rgb(244, 33, 46);
+  font-family: "TwitterChirp", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  border: 1px solid rgba(244, 33, 46, 0.2);
+  border-radius: 12px;
   display: none;
+  line-height: 1.3;
 `;
 postResultBox.innerHTML = `
-  <div id="postResultMessage"></div>
-  <div style="margin-top:10px; text-align:right;">
-    <button id="rewriteBtn" style="margin-right:8px; padding:4px 8px;">Rewrite</button>
-    <button id="postAnywayBtn" style="padding:4px 8px;">Post Anyway</button>
+  <div id="postResultMessage" style="margin-bottom:12px; font-weight:400;"></div>
+  <div style="display:flex; justify-content:flex-end; gap:8px; align-items:center;">
+    <button id="rewriteBtn" style="padding:6px 6px; border:1px solid rgb(207, 217, 222); border-radius:18px; background:#fff; cursor:pointer; font-size:14px; font-weight:700; color:rgb(15, 20, 25); display:flex; align-items:center; justify-content:center;">
+      Rewrite
+    </button>
+    <button id="postAnywayBtn" style="padding:6px 6px; border:none; border-radius:18px; background:rgb(244, 33, 46); color:#fff; cursor:pointer; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center;">
+      Post anyway
+    </button>
   </div>
 `;
-document.body.appendChild(postResultBox);
 
-const postResultMessage = document.getElementById("postResultMessage");
-const rewriteBtn = document.getElementById("rewriteBtn");
-const postAnywayBtn = document.getElementById("postAnywayBtn");
+let postResultMessage, rewriteBtn, postAnywayBtn;
 
 // ====== Run ML check ======
 async function runMLCheck(postText) {
@@ -43,22 +40,31 @@ async function runMLCheck(postText) {
 
         const result = await response.json();
         console.log("ML Check Result:", result);
-        return result; // { label: "...", confidence: 0.92 }
+        return result; 
     } catch (error) {
         console.error("ML Check Error:", error);
-        return { label: "not_cyberbullying", confidence: 1 };
+        return { label: "not_cyberbullying", probabilities: 1 };
     }
 }
 
 // ====== Observe DOM for post button ======
 const observer = new MutationObserver(() => {
     const postButton = document.querySelector('button[data-testid="tweetButtonInline"]');
-    if (postButton && !postButton.dataset.listenerAdded) {
+    const composer = document.querySelector('div[role="textbox"]')?.closest("div");
+
+    if (postButton && composer && !postButton.dataset.listenerAdded) {
         postButton.dataset.listenerAdded = true;
         console.log("Post button found, adding click listener");
 
+        if (!document.getElementById("postResultBox")) {
+            composer.parentNode.insertBefore(postResultBox, composer.nextSibling);
+            postResultMessage = document.getElementById("postResultMessage");
+            rewriteBtn = document.getElementById("rewriteBtn");
+            postAnywayBtn = document.getElementById("postAnywayBtn");
+        }
+
         async function handleClick(e) {
-            e.preventDefault(); // always stop posting first
+            e.preventDefault();
             e.stopImmediatePropagation();
 
             const postBox = document.querySelector('div[role="textbox"]');
@@ -68,7 +74,7 @@ const observer = new MutationObserver(() => {
             const flagged = result.label !== "not_cyberbullying";
 
             if (flagged) {
-                const confidence = (result.confidence || 0) * 100;
+                const confidence = Math.max(...result.probabilities) * 100;
                 const labelMap = {
                     age: "Age-based bullying",
                     ethnicity: "Ethnic discrimination",
@@ -79,27 +85,24 @@ const observer = new MutationObserver(() => {
                 const formattedLabel = labelMap[result.label] || "Cyberbullying";
 
                 postResultMessage.innerHTML = `
-                    ⚠️ <strong>This post may contain cyberbullying.</strong><br><br>
-                    <strong>Type:</strong> ${formattedLabel}<br>
-                    <strong>Confidence:</strong> ${confidence.toFixed(1)}%<br><br>
-                    Please consider rewording or choose to post anyway.
+                    This post may contain cyberbullying.
+                    Type: <strong>${formattedLabel}</strong>.<br>
+                    Confidence: ${confidence.toFixed(1)}%
+                    Please consider rewriting or choose to post anyway.
                 `;
                 postResultBox.style.display = "block";
 
-                // Rewrite button → just close warning and do nothing
                 rewriteBtn.onclick = () => {
                     postResultBox.style.display = "none";
                     postBox.focus();
                 };
 
-                // Post Anyway button → re-fire real click but skip ML listener
                 postAnywayBtn.onclick = () => {
                     postResultBox.style.display = "none";
                     postButton.removeEventListener("click", handleClick);
-                    postButton.click(); // this time it goes directly to Twitter's native handler
+                    postButton.click();
                 };
             } else {
-                // If safe, let post go through
                 postButton.removeEventListener("click", handleClick);
                 postButton.click();
             }
