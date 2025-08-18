@@ -24,6 +24,10 @@ def init_db():
                     password_hash TEXT NOT NULL,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )''')
+    
+    # Check if admin user exists, if not create it
+    # This is a hardcoded admin user for initial setup
+    # In production, delete this or change it to a more secure method (user registration)
     c.execute("SELECT * FROM users WHERE username = ?", ('admin@roasted.com',))
     if c.fetchone() is None:
         # Hash password

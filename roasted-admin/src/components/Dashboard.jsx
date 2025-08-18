@@ -1,13 +1,11 @@
-import React from 'react';
-import { Box, Toolbar} from '@mui/material';
-import ReportTable from './ReportTable';
-import Sidebar from './Sidebar';
-import Header from './Header';
-import Statistics from './Statistics';
+import React from "react";
+import { Box, Toolbar} from "@mui/material";
+import Sidebar from "./Sidebar";
+import Header from "./Header";
 
 const Dashboard = ({ children, isLoggedIn, onLoginToggle }) => {
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: "flex" }}>
       <Header isLoggedIn={isLoggedIn} onLoginToggle={onLoginToggle} />
       <Sidebar />
 

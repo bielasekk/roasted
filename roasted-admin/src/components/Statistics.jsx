@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Grid,
@@ -10,14 +10,14 @@ import {
   TableCell,
   TableBody,
   CircularProgress,
-} from '@mui/material';
-import { LineChart } from '@mui/x-charts/LineChart';
+} from "@mui/material";
+import { LineChart } from "@mui/x-charts/LineChart";
 
 // Utility to extract domain from URL
 const extractDomain = (url) => {
   try {
     const u = new URL(url);
-    return u.hostname.replace('www.', '');
+    return u.hostname.replace("www.", "");
   } catch {
     return null;
   }
@@ -29,15 +29,14 @@ const getLast7Days = () => {
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
     dates.push(`${day}.${month}`);
   }
   return dates;
 };
 
 const Statistics = () => {
-  const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
 
@@ -45,7 +44,7 @@ const Statistics = () => {
     const fetchReports = async () => {
       setLoading(true);
       try {
-        const res = await fetch('http://localhost:5002/api/reports');
+        const res = await fetch("http://localhost:5002/api/reports");
         const data = await res.json();
 
         // Filter reports for last 7 days only
@@ -58,14 +57,13 @@ const Statistics = () => {
           return reportDate >= sevenDaysAgo && reportDate <= today;
         });
 
-        setReports(filtered);
         setLoading(false);
 
         // Calculate stats
         const totalReports = filtered.length;
         const flaggedReports = filtered.filter((r) => r.flag).length;
         const avgPerDay = totalReports / 7;
-        const anonymousReports = filtered.filter((r) => r.reporter === 'Anonymous').length;
+        const anonymousReports = filtered.filter((r) => r.reporter === "Anonymous").length;
         const percentAnonymous = totalReports ? ((anonymousReports / totalReports) * 100).toFixed(1) : 0;
 
         // Count reports with URLs and domains frequency
@@ -86,7 +84,7 @@ const Statistics = () => {
         const reportsByDay = last7Days.map((dateStr) => {
           // dateStr like '11.08'
           // parse to actual date for matching
-          const [day, month] = dateStr.split('.');
+          const [day, month] = dateStr.split(".");
           return filtered.filter((r) => {
             const d = new Date(r.timestamp);
             return (
@@ -107,7 +105,7 @@ const Statistics = () => {
           reportsByDay,
         });
       } catch (err) {
-        console.error('Failed to fetch reports', err);
+        console.error("Failed to fetch reports", err);
         setLoading(false);
       }
     };
@@ -120,7 +118,7 @@ const Statistics = () => {
   if (!stats) return <Typography>No data</Typography>;
 
   return (
-    <Paper sx={{ p: 3, width: '100%' }}>
+    <Paper sx={{ p: 3, width: "100%" }}>
       <Typography variant="h6" gutterBottom>
         Platform Statistics (Last 7 Days)
       </Typography>
@@ -130,9 +128,9 @@ const Statistics = () => {
         <Grid item xs={12} md={7}>
           <Box sx={{ height: 300 }}>
             <LineChart
-              xAxis={[{ scaleType: 'point', data: stats.last7Days }]}
+              xAxis={[{ scaleType: "point", data: stats.last7Days }]}
               series={[
-                { curve: 'linear', data: stats.reportsByDay, label: 'User Reports' },
+                { curve: "linear", data: stats.reportsByDay, label: "User Reports" },
               ]}
               width={500}
               height={300}

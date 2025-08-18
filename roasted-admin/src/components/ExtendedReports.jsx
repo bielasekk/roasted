@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { DataGrid } from '@mui/x-data-grid';
-import { Button, Box, TextField, IconButton, CircularProgress, Typography, Paper } from '@mui/material';
-import { saveAs } from 'file-saver';
-import FlagIcon from '@mui/icons-material/Flag';
-import FlagOutlinedIcon from '@mui/icons-material/OutlinedFlag';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import React, { useEffect, useState } from "react";
+import { DataGrid } from "@mui/x-data-grid";
+import { Button, Box, TextField, IconButton, CircularProgress, Typography, Paper } from "@mui/material";
+import { saveAs } from "file-saver";
+import FlagIcon from "@mui/icons-material/Flag";
+import FlagOutlinedIcon from "@mui/icons-material/OutlinedFlag";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
 const ExtendedReports = () => {
   const [reports, setReports] = useState([]);
   const [filteredReports, setFilteredReports] = useState([]);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [searchText, setSearchText] = useState('');
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [searchText, setSearchText] = useState("");
   const [selectedRows, setSelectedRows] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -66,7 +66,7 @@ const ExtendedReports = () => {
   };
 
 const handleClearSearch = () => {
-  setSearchText('');
+  setSearchText("");
   
   // Reapply only date filters
   let temp = [...reports];
@@ -78,7 +78,7 @@ const handleClearSearch = () => {
 
   const toggleFlag = async (id) => {
     try {
-      await fetch(`http://localhost:5002/api/reports/flag/${id}`, { method: 'POST' });
+      await fetch(`http://localhost:5002/api/reports/flag/${id}`, { method: "POST" });
       fetchReports();
     } catch (err) {
       console.error(err);
@@ -87,11 +87,11 @@ const handleClearSearch = () => {
 
   const handleDelete = async () => {
     if (!selectedRows.length) return;
-    if (!window.confirm(`Delete reports: ${selectedRows.join(', ')}?`)) return;
+    if (!window.confirm(`Delete reports: ${selectedRows.join(", ")}?`)) return;
     try {
-      await fetch('http://localhost:5002/api/reports', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("http://localhost:5002/api/reports", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids: selectedRows }),
       });
       setSelectedRows([]);
@@ -105,7 +105,7 @@ const handleClearSearch = () => {
     const csvContent = [
       ["ID", "Text", "Reporter", "Abusive Author", "URL", "Timestamp", "Flag"],
       ...filteredReports.map(r => [
-        r.id, r.text, r.reporter, r.abusive_author, r.url, r.timestamp, r.flag ? 'Yes' : 'No'
+        r.id, r.text, r.reporter, r.abusive_author, r.url, r.timestamp, r.flag ? "Yes" : "No"
       ])
     ]
       .map(row => row.map(value => `"${value}"`).join(","))
@@ -116,33 +116,33 @@ const handleClearSearch = () => {
   };
 
   const columns = [
-    { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'text', headerName: 'Text', width: 250, sortable: true },
-    { field: 'reporter', headerName: 'Reporter', width: 150, sortable: true },
-    { field: 'abusive_author', headerName: 'Abusive Author', width: 150 },
+    { field: "id", headerName: "ID", width: 70 },
+    { field: "text", headerName: "Text", width: 250, sortable: true },
+    { field: "reporter", headerName: "Reporter", width: 150, sortable: true },
+    { field: "abusive_author", headerName: "Abusive Author", width: 150 },
     {
-      field: 'url',
-      headerName: 'Link',
+      field: "url",
+      headerName: "Link",
       width: 140,
       renderCell: (params) => (
         <Button
           variant="outlined"
           size="small"
           endIcon={<OpenInNewIcon />}
-          onClick={() => window.open(params.value, '_blank', 'noopener,noreferrer')}
+          onClick={() => window.open(params.value, "_blank", "noopener,noreferrer")}
         >
           Open
         </Button>
       ),
     },
-    { field: 'timestamp', headerName: 'Timestamp', width: 180, sortable: true },
+    { field: "timestamp", headerName: "Timestamp", width: 180, sortable: true },
     {
-      field: 'flag',
-      headerName: 'Flag',
+      field: "flag",
+      headerName: "Flag",
       width: 80,
       sortable: true,
       renderCell: (params) => (
-        <IconButton onClick={() => toggleFlag(params.row.id)} color={params.value ? 'error' : 'default'}>
+        <IconButton onClick={() => toggleFlag(params.row.id)} color={params.value ? "error" : "default"}>
           {params.value ? <FlagIcon /> : <FlagOutlinedIcon />}
         </IconButton>
       ),
@@ -152,15 +152,15 @@ const handleClearSearch = () => {
   if (loading) return <CircularProgress />;
 
   return (
-    <Paper sx={{ width: '100%', p: 2 }}>
+    <Paper sx={{ width: "100%", p: 2 }}>
     <Box>
       <Typography variant="h6" gutterBottom>
         Reports
       </Typography>
 
       {/* Top row: Search */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+        <Box sx={{ display: "flex", gap: 1 }}>
           <TextField
             size="small"
             variant="outlined"
@@ -178,8 +178,8 @@ const handleClearSearch = () => {
         </Box>
 
       {/* Second row: Filters & Actions */}
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-      <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+      <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
         <TextField
           size="small"
           type="date"
@@ -197,11 +197,11 @@ const handleClearSearch = () => {
           onChange={(e) => setEndDate(e.target.value)}
         />
      </Box>
-        <Box sx={{ display: 'flex', gap: 1}}>
+        <Box sx={{ display: "flex", gap: 1}}>
            <Button 
             size="small" 
             variant="outlined" 
-            sx={{ height: 40, minWidth: 'auto', px: 2 }} 
+            sx={{ height: 40, minWidth: "auto", px: 2 }} 
             onClick={exportCSV}>
                 Export CSV
             </Button>
@@ -209,7 +209,7 @@ const handleClearSearch = () => {
                 size="small" 
                 variant="outlined" 
                 color="error" 
-                sx={{ height: 40, minWidth: 'auto', px: 2 }} 
+                sx={{ height: 40, minWidth: "auto", px: 2 }} 
                 onClick={handleDelete} 
                 disabled={selectedRows.length === 0}>
             Delete Selected
@@ -217,7 +217,7 @@ const handleClearSearch = () => {
       </Box>
     </Box>
 
-      <div style={{ height: 600, width: '100%' }}>
+      <div style={{ height: 600, width: "100%" }}>
         <DataGrid
           rows={filteredReports}
           columns={columns}

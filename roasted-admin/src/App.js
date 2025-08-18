@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./components/Dashboard";
 import ReportTable from "./components/ReportTable";
 import Statistics from "./components/Statistics";
-import LoginPage from './components/Login';  
-import ExtendedReports from './components/ExtendedReports';
-import ExtendedStatistics from './components/ExtendedStatistics';
+import LoginPage from "./components/Login";  
+import ExtendedReports from "./components/ExtendedReports";
+import ExtendedStatistics from "./components/ExtendedStatistics";
+import Settings from "./components/Settings";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
@@ -40,6 +41,7 @@ function App() {
             } />
             <Route path="/reports" element={<ExtendedReports />} />
             <Route path="/statistics" element={<ExtendedStatistics />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Dashboard>

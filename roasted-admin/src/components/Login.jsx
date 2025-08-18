@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import { Box, Paper, Typography, TextField, Button, Alert } from '@mui/material';
-import Header from './Header';
+import React, { useState } from "react";
+import { Box, Paper, Typography, TextField, Button, Alert } from "@mui/material";
+import Header from "./Header";
 
 const LoginPage = ({ isLoggedIn, onLoginToggle }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
 
   const handleLogin = async () => {
     setError(null);
     try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
@@ -21,10 +21,10 @@ const LoginPage = ({ isLoggedIn, onLoginToggle }) => {
       if (res.ok && data.success) {
         onLoginToggle(); // successful login, toggle state in App.js
       } else {
-        setError(data.message || 'Login failed');
+        setError(data.message || "Login failed");
       }
     } catch (err) {
-      setError('Network error');
+      setError("Network error");
     }
   };
 
@@ -33,11 +33,11 @@ const LoginPage = ({ isLoggedIn, onLoginToggle }) => {
       <Header isLoggedIn={isLoggedIn} onLoginToggle={onLoginToggle} />
       <Box
         sx={{
-          height: '100vh',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: '#f5f5f5',
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#f5f5f5",
           pt: 8,
         }}
       >

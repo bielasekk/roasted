@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   AppBar,
   Toolbar,
@@ -6,7 +6,7 @@ import {
   Button,
   Box,
   Avatar,
-} from '@mui/material';
+} from "@mui/material";
 
 const Header = ({ isLoggedIn, onLoginToggle }) => {
   return (
@@ -14,12 +14,13 @@ const Header = ({ isLoggedIn, onLoginToggle }) => {
       position="fixed"
       sx={{
         zIndex: (theme) => theme.zIndex.drawer + 1,
-        backgroundColor: 'primary.main',
+        backgroundColor: "primary.main",
       }}
     >
-      <Toolbar sx={{ justifyContent: 'space-between' }}>
+      <Toolbar sx={{ justifyContent: "space-between" }}>
         {/* Left: Logo + App title */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          {/* Logo - in production, design should be improved */}
           <Avatar
             variant="square"
             src="/roasted.png"
@@ -31,17 +32,17 @@ const Header = ({ isLoggedIn, onLoginToggle }) => {
           </Typography>
         </Box>
 
-        {/* Right: Logout only when logged in */}
+        {/* Right: Logout when logged in */}
         {isLoggedIn && (
           <Button
             color="inherit"
             onClick={onLoginToggle}
             variant="outlined"
             sx={{
-              borderColor: 'white',
-              color: 'white',
-              '&:hover': {
-                borderColor: 'lightgray',
+              borderColor: "white",
+              color: "white",
+              "&:hover": {
+                borderColor: "lightgray",
               },
             }}
           >

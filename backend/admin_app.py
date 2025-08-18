@@ -18,12 +18,14 @@ CORS(app, supports_credentials=True)  # Allow React frontend to access API
 
 init_db()
 
+# Function to get a database connection
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
 @app.route('/api/reports', methods=['GET'])
+# Endpoint to get all reports
 def get_reports():
     try:
         conn = get_db_connection()
@@ -48,6 +50,7 @@ def get_reports():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/reports/flag/<int:report_id>', methods=['POST'])
+# Endpoint to toggle the flag status of a report
 def toggle_flag(report_id):
     try:
         conn = get_db_connection()
@@ -67,6 +70,7 @@ def toggle_flag(report_id):
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/reports', methods=['DELETE'])
+# Endpoint to delete reports by IDs
 def delete_reports():
     try:
         data = request.get_json()
@@ -84,6 +88,7 @@ def delete_reports():
         return jsonify({"error": str(e)}), 500
     
 @app.route('/api/reports/stats', methods=['GET'])
+# Endpoint to get report statistics for the last 7 days
 def get_report_stats():
     try:
         conn = get_db_connection()
@@ -122,6 +127,7 @@ def get_report_stats():
         return jsonify({"error": str(e)}), 500
     
 @app.route('/api/login', methods=['POST'])
+# Endpoint for user login
 def login():
     data = request.get_json()
     username = data.get('username')
@@ -138,13 +144,77 @@ def login():
         return jsonify(success=False, message="Invalid credentials"), 401
 
 @app.route('/api/logout', methods=['POST'])
+# Endpoint for user logout
 def logout():
     session.pop('user', None)
     return jsonify(success=True)
 
 @app.route('/api/check-session', methods=['GET'])
+# Endpoint to check if user is logged in
 def check_session():
     return jsonify(logged_in=('user' in session), user=session.get('user'))
+
+@app.route('/api/change-password', methods=['POST'])
+# Endpoint to change user password
+def change_password():
+    if 'user' not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    data = request.get_json()
+    old_password = data.get('oldPassword')
+    new_password = data.get('newPassword')
+
+    conn = get_db_connection()
+    user = conn.execute("SELECT * FROM users WHERE username = ?", (session['user'],)).fetchone()
+
+    if not user:
+        conn.close()
+        return jsonify({"error": "User not found"}), 404
+
+    # Check old password
+    if not bcrypt.checkpw(old_password.encode('utf-8'), user['password_hash'].encode('utf-8')):
+        conn.close()
+        return jsonify({"error": "Old password incorrect"}), 400
+
+    # Hash and save new password
+    new_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    conn.execute("UPDATE users SET password_hash = ? WHERE username = ?", (new_hash, session['user']))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Password updated successfully"})
+
+@app.route('/api/change-email', methods=['POST'])
+# Endpoint to change user email
+def change_email():
+    if 'user' not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    data = request.get_json()
+    old_email = data.get('oldEmail')
+    new_email = data.get('newEmail')
+
+    conn = get_db_connection()
+    user = conn.execute("SELECT * FROM users WHERE username = ?", (session['user'],)).fetchone()
+
+    if not user:
+        conn.close()
+        return jsonify({"error": "User not found"}), 404
+
+    # Verify old email matches current session user
+    if user['username'] != old_email:
+        conn.close()
+        return jsonify({"error": "Old email does not match"}), 400
+
+    # Update email (username column)
+    conn.execute("UPDATE users SET username = ? WHERE username = ?", (new_email, old_email))
+    conn.commit()
+    conn.close()
+
+    # Update session to keep user logged in
+    session['user'] = new_email
+
+    return jsonify({"message": "Email updated successfully"})
 
 if __name__ == '__main__':
     app.run(port=5002, debug=True)
