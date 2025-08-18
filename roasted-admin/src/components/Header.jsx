@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   AppBar,
   Toolbar,
@@ -6,7 +6,7 @@ import {
   Button,
   Box,
   Avatar,
-} from '@mui/material';
+} from "@mui/material";
 
 const Header = ({ isLoggedIn, onLoginToggle }) => {
   return (
@@ -14,38 +14,41 @@ const Header = ({ isLoggedIn, onLoginToggle }) => {
       position="fixed"
       sx={{
         zIndex: (theme) => theme.zIndex.drawer + 1,
-        backgroundColor: 'primary.main',
+        backgroundColor: "primary.main",
       }}
     >
-      <Toolbar sx={{ justifyContent: 'space-between' }}>
+      <Toolbar sx={{ justifyContent: "space-between" }}>
         {/* Left: Logo + App title */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          {/* Logo - in production, design should be improved */}
           <Avatar
             variant="square"
-            sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}
-          >
-            🍗
-          </Avatar>
+            src="/roasted.png"
+            alt="Roasted Logo"
+            sx={{ width: 32, height: 32 }}
+          />
           <Typography variant="h6" noWrap component="div">
             Roasted
           </Typography>
         </Box>
 
-        {/* Right: Login / Logout */}
-        <Button
-          color="inherit"
-          onClick={onLoginToggle}
-          variant="outlined"
-          sx={{
-            borderColor: 'white',
-            color: 'white',
-            '&:hover': {
-              borderColor: 'lightgray',
-            },
-          }}
-        >
-          {isLoggedIn ? 'Log Out' : 'Log In'}
-        </Button>
+        {/* Right: Logout when logged in */}
+        {isLoggedIn && (
+          <Button
+            color="inherit"
+            onClick={onLoginToggle}
+            variant="outlined"
+            sx={{
+              borderColor: "white",
+              color: "white",
+              "&:hover": {
+                borderColor: "lightgray",
+              },
+            }}
+          >
+            Log Out
+          </Button>
+        )}
       </Toolbar>
     </AppBar>
   );

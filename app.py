@@ -4,7 +4,6 @@ import os
 import requests
 import re
 from dotenv import load_dotenv
-# from datetime import datetime, timezone
 import sqlite3
 
 load_dotenv()
@@ -46,7 +45,7 @@ def get_access_token():
         raise
 
 # The /product endpoint is provided for compatibility with a specific extension's request format.
-@app.route('/product', methods=['POST'])  # Add this endpoint
+@app.route('/product', methods=['POST'])
 def product():
     """Endpoint that matches your extension's request"""
     return predict()
@@ -125,40 +124,11 @@ def predict():
         print(f"Error: {str(e)}")
         return jsonify({"error": str(e)}), 500
     
-# In-memory store (replace later with a real DB)
-# reports = []
 
+# filepath: /Users/olabielas/Desktop/roasted/app.py
 @app.route('/report', methods=['POST'])
 def report():
     try:
-        # data = request.get_json()
-        # print("Received report payload:", data)
-        # text = data.get("reportTextValue", "").strip()
-        # reporter = data.get("reporter", "").strip()
-        # abusive_author = data.get("abusiveAuthor", "").strip()
-        # # platform = data.get("platform", "").strip()
-        # url = data.get("url", "").strip()  # Use URL as platform
-        # domain = data.get("domain", "").strip()  # Use domain as platform
-
-        # if not text:
-        #     return jsonify({"error": "Text is required"}), 400
-
-        # report_entry = {
-        #     "text": text,
-        #     "reporter": reporter if reporter else "Anonymous",
-        #     "abusive_author": abusive_author if abusive_author else "Unknown",
-        #     # "platform": platform if platform else "Unknown",
-        #     "url": url if url else "Unknown",
-        #     "domain": domain if domain else "Unknown",
-        #     "timestamp": datetime.now(timezone.utc).isoformat()
-        # }
-
-        # # Save it (just in memory for now)
-        # reports.append(report_entry)
-
-        # # Later: Save to DB (e.g. Firebase, MongoDB, PostgreSQL)
-        # print(f"Received report: {report_entry}")
-        # return jsonify({"success": True}), 200
         data = request.get_json()
         report_text = data.get('reportTextValue')
         reporter = data.get('reporter') or 'Anonymous'
@@ -178,8 +148,6 @@ def report():
                 VALUES (?, ?, ?, ?)
             ''', (report_text, reporter, abusive_author, url))
             conn.commit()
-            for row in c.fetchall():
-                print(row)
         except sqlite3.Error as e:
             print(f"Database error: {str(e)}")
             return jsonify({"error": "Database error"}), 500
