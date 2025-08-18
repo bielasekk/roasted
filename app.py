@@ -5,6 +5,7 @@ import requests
 import re
 from dotenv import load_dotenv
 import sqlite3
+import tweepy
 
 load_dotenv()
 
@@ -23,6 +24,19 @@ CORS(app, resources={
 API_KEY = os.getenv("IBM_API_KEY")
 if not API_KEY:
     raise ValueError("IBM_API_KEY environment variable not set")
+
+# Load from .env
+TWITTER_API_KEY = os.getenv("TWITTER_API_KEY")
+TWITTER_API_SECRET = os.getenv("TWITTER_API_SECRET")
+TWITTER_ACCESS_TOKEN = os.getenv("TWITTER_ACCESS_TOKEN")
+TWITTER_ACCESS_SECRET = os.getenv("TWITTER_ACCESS_SECRET")
+
+# OAuth1 authentication (user context)
+auth = tweepy.OAuth1UserHandler(
+    TWITTER_API_KEY, TWITTER_API_SECRET,
+    TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET
+)
+twitter_client = tweepy.API(auth)
 
 def get_access_token():
     """Get IBM Cloud access token"""
@@ -51,6 +65,7 @@ def product():
     return predict()
 
 @app.route('/predict', methods=['POST', 'OPTIONS'])
+# Endpoint to predict cyberbullying
 def predict():
     if request.method == 'OPTIONS':
         return jsonify({"status": "preflight"}), 200
@@ -127,6 +142,7 @@ def predict():
 
 # filepath: /Users/olabielas/Desktop/roasted/app.py
 @app.route('/report', methods=['POST'])
+# Endpoint to store a report
 def report():
     try:
         data = request.get_json()
@@ -160,6 +176,31 @@ def report():
     except Exception as e:
         print(f"Report error: {str(e)}")
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/tweet', methods=['POST'])
+# Endpoint to post a tweet after checking for cyberbullying
+def tweet():
+    data = request.get_json()
+    text = data.get('text')
+    if not text:
+        return jsonify({"error": "No text provided"}), 400
+
+    # Step 1: Check for cyberbullying
+    from requests import post
+    prediction_resp = post("http://localhost:5001/predict", json={"text": text})
+    result = prediction_resp.json()
+    label = result.get("label")
+
+    if label != "not_cyberbullying":
+        return jsonify({"status": "blocked", "label": label}), 200
+
+    # Step 2: Post tweet if safe
+    try:
+        tweet_resp = twitter_client.update_status(text)
+        return jsonify({"status": "posted", "tweet_id": tweet_resp.id_str}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+    
 if __name__ == '__main__':
     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1", "yes")
     app.run(host='0.0.0.0', port=5001, debug=debug_mode)

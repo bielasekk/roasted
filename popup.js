@@ -73,7 +73,7 @@ if (window._popupJsLoaded) {
       }
   }
 
-  // Update your click handler
+  // Event listeners
   analyzeBtn.addEventListener("click", async () => {
       const text = inputText.value.trim();
       if (!text) {
