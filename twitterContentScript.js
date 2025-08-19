@@ -1,29 +1,66 @@
 console.log("X.com post observer loaded");
 
+// ====== Create a proper stylesheet ======
+const style = document.createElement("style");
+style.textContent = `
+  #postResultBox {
+    margin: 8px 0 !important;
+    padding: 16px !important;
+    background-color: rgba(244, 33, 46, 0.1) !important;
+    color: rgb(244, 33, 46) !important;
+    font-family: "TwitterChirp", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    font-size: 14px !important;
+    border: 1px solid rgba(244, 33, 46, 0.2) !important;
+    border-radius: 12px !important;
+    line-height: 1.4 !important;
+    box-sizing: border-box !important;
+    display: none; /* NO !important here - we'll control this via JS */
+  }
+  
+  #postResultMessage {
+    margin-bottom: 16px !important;
+    font-weight: 400 !important;
+    line-height: 1.4 !important;
+    color: rgb(244, 33, 46) !important;
+    font-family: inherit !important;
+  }
+  
+  #rewriteBtn, #postAnywayBtn {
+    padding: 8px 16px !important;
+    border-radius: 18px !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    font-family: inherit !important;
+    min-width: 80px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+  
+  #rewriteBtn {
+    border: 1px solid rgb(207, 217, 222) !important;
+    background: #fff !important;
+    color: rgb(15, 20, 25) !important;
+  }
+  
+  #postAnywayBtn {
+    border: none !important;
+    background: rgb(244, 33, 46) !important;
+    color: #fff !important;
+  }
+`;
+document.head.appendChild(style);
+
 // ====== Create inline result box (hidden by default) ======
 const postResultBox = document.createElement("div");
 postResultBox.id = "postResultBox";
-postResultBox.style.cssText = `
-  margin: 8px 0;
-  padding: 12px;
-  background-color: rgba(244, 33, 46, 0.1);
-  color: rgb(244, 33, 46);
-  font-family: "TwitterChirp", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  border: 1px solid rgba(244, 33, 46, 0.2);
-  border-radius: 12px;
-  display: none;
-  line-height: 1.3;
-`;
 postResultBox.innerHTML = `
-  <div id="postResultMessage" style="margin-bottom:12px; font-weight:400;"></div>
-  <div style="display:flex; justify-content:flex-end; gap:8px; align-items:center;">
-    <button id="rewriteBtn" style="padding:6px 6px; border:1px solid rgb(207, 217, 222); border-radius:18px; background:#fff; cursor:pointer; font-size:14px; font-weight:700; color:rgb(15, 20, 25); display:flex; align-items:center; justify-content:center;">
-      Rewrite
-    </button>
-    <button id="postAnywayBtn" style="padding:6px 6px; border:none; border-radius:18px; background:rgb(244, 33, 46); color:#fff; cursor:pointer; font-size:14px; font-weight:700; display:flex; align-items:center; justify-content:center;">
-      Post anyway
-    </button>
+  <div id="postResultMessage"></div>
+  <div style="display:flex; justify-content:flex-end; gap:12px; align-items:center;">
+    <button id="rewriteBtn">Rewrite</button>
+    <button id="postAnywayBtn">Post anyway</button>
   </div>
 `;
 
@@ -91,6 +128,7 @@ const observer = new MutationObserver(() => {
                     Please consider rewriting or choose to post anyway.
                 `;
                 postResultBox.style.display = "block";
+                postResultBox.style.setProperty('display', 'block', 'important');
 
                 rewriteBtn.onclick = () => {
                     postResultBox.style.display = "none";
