@@ -6,6 +6,7 @@ import re
 from dotenv import load_dotenv
 import sqlite3
 import tweepy
+from cryptography.fernet import Fernet
 
 load_dotenv()
 
@@ -30,6 +31,15 @@ TWITTER_API_KEY = os.getenv("TWITTER_API_KEY")
 TWITTER_API_SECRET = os.getenv("TWITTER_API_SECRET")
 TWITTER_ACCESS_TOKEN = os.getenv("TWITTER_ACCESS_TOKEN")
 TWITTER_ACCESS_SECRET = os.getenv("TWITTER_ACCESS_SECRET")
+if not all([TWITTER_API_KEY, TWITTER_API_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET]):
+    raise ValueError("Twitter API credentials not set in environment variables")    
+
+# Initialize Fernet for encryption/decryption
+FERNET_KEY = os.getenv("FERNET_KEY")
+cipher = Fernet(FERNET_KEY)
+
+def encrypt(value: str) -> str:
+    return cipher.encrypt(value.encode()).decode()
 
 # OAuth1 authentication (user context)
 auth = tweepy.OAuth1UserHandler(
@@ -140,7 +150,7 @@ def predict():
         return jsonify({"error": str(e)}), 500
     
 
-# filepath: /Users/olabielas/Desktop/roasted/app.py
+
 @app.route('/report', methods=['POST'])
 # Endpoint to store a report
 def report():
@@ -153,16 +163,22 @@ def report():
 
         if not report_text:
             return jsonify({'error': 'Missing report text'}), 400
+        
+        # Encrypt fields before inserting
+        enc_report_text = encrypt(report_text)
+        enc_reporter = encrypt(reporter)
+        enc_abusive_author = encrypt(abusive_author)
+        enc_url = encrypt(url)
 
         print("Inserting report with values:")
-        print(f"Text: {report_text}, Reporter: {reporter}, Author: {abusive_author}, URL: {url}")
+        print(f"Text: {enc_report_text}, Reporter: {enc_reporter}, Author: {enc_abusive_author}, URL: {enc_url}")
         try:
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
             c.execute('''
                 INSERT INTO reports (report_text, reporter, abusive_author, url)
                 VALUES (?, ?, ?, ?)
-            ''', (report_text, reporter, abusive_author, url))
+            ''', (enc_report_text, enc_reporter, enc_abusive_author, enc_url))
             conn.commit()
         except sqlite3.Error as e:
             print(f"Database error: {str(e)}")
