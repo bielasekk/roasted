@@ -179,4 +179,20 @@ if (window._popupJsLoaded) {
       window.open('https://www.nationalchildrensalliance.org/cyberbullying/', '_blank');
     });
   });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const toggle = document.getElementById("toggleExtension");
+
+    if (!toggle) return; // safety check
+
+    // Load saved state
+    chrome.storage.sync.get("extensionEnabled", ({ extensionEnabled }) => {
+      toggle.checked = extensionEnabled !== false; // default: true
+    });
+
+    // Save state when toggled
+    toggle.addEventListener("change", () => {
+      chrome.storage.sync.set({ extensionEnabled: toggle.checked });
+    });
+});
 }
