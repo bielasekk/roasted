@@ -4,19 +4,22 @@ from flask_cors import CORS
 from collections import defaultdict
 import datetime
 import bcrypt
-from database import init_db
 import os
 from dotenv import load_dotenv
+from cryptography.fernet import Fernet
 
 load_dotenv()
 
-DB_PATH = "roasted.db"
+DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "roasted.db")
+
+# Initialize Fernet for encryption/decryption
+FERNET_KEY = os.getenv("FERNET_KEY")
+cipher = Fernet(FERNET_KEY)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 CORS(app, supports_credentials=True)  # Allow React frontend to access API
 
-init_db()
 
 # Function to get a database connection
 def get_db_connection():
@@ -24,29 +27,46 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+# Function to decrypt a value
+def decrypt(value: str) -> str:
+    return cipher.decrypt(value.encode()).decode()
+
 @app.route('/api/reports', methods=['GET'])
 # Endpoint to get all reports
 def get_reports():
     try:
         conn = get_db_connection()
         c = conn.cursor()
+        
+        # Debug: Check if table exists and has data
+        c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='reports'")
+        table_exists = c.fetchone()
+        print(f"Reports table exists: {table_exists is not None}")
+        
+        c.execute("SELECT COUNT(*) FROM reports")
+        count = c.fetchone()[0]
+        print(f"Total reports in database: {count}")
+        
         c.execute("SELECT id, report_text, reporter, abusive_author, url, timestamp, flag FROM reports ORDER BY id DESC")
         reports = c.fetchall()
         conn.close()
 
+        print(f"Fetched {len(reports)} reports from query")
+        
         results = [
             {
                 "id": r[0],
-                "text": r[1],
-                "reporter": r[2],
-                "abusive_author": r[3],
-                "url": r[4],
+                "text": decrypt(r[1]),
+                "reporter": decrypt(r[2]),
+                "abusive_author": decrypt(r[3]),
+                "url": decrypt(r[4]),
                 "timestamp": r[5],
                 "flag": bool(r[6])
             } for r in reports
         ]
         return jsonify(results)
     except Exception as e:
+        print(f"Error in get_reports: {str(e)}")  # Debug
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/reports/flag/<int:report_id>', methods=['POST'])
