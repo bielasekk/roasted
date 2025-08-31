@@ -10,7 +10,8 @@ from cryptography.fernet import Fernet
 
 load_dotenv()
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "roasted.db")
+# DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "roasted.db")
+DB_PATH = "/roasted.db"
 
 # Initialize Fernet for encryption/decryption
 FERNET_KEY = os.getenv("FERNET_KEY")
@@ -18,7 +19,11 @@ cipher = Fernet(FERNET_KEY)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
-CORS(app, supports_credentials=True)  # Allow React frontend to access API
+CORS(app, supports_credentials=True, origins=[
+    "http://localhost:3001", 
+    "http://admin-frontend:3000",  # For Docker internal networking
+    "http://localhost:3000"
+])  # Allow React frontend to access API
 
 
 # Function to get a database connection
@@ -149,19 +154,28 @@ def get_report_stats():
 @app.route('/api/login', methods=['POST'])
 # Endpoint for user login
 def login():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
+    try:
+        data = request.get_json()
+        print(f"Login attempt with data: {data}")  # Debug
+        username = data.get('username')
+        password = data.get('password')
 
-    conn = get_db_connection()
-    user = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
-    conn.close()
+        conn = get_db_connection()
+        user = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+        conn.close()
 
-    if user and bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
-        session['user'] = username  # store user in session
-        return jsonify(success=True)
-    else:
-        return jsonify(success=False, message="Invalid credentials"), 401
+        print(f"User found: {user is not None}")  # Debug
+
+        if user and bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
+            session['user'] = username  # store user in session
+            print("Login successful")
+            return jsonify(success=True)
+        else:
+            print("Login failed - invalid credentials")  # Debug
+            return jsonify(success=False, message="Invalid credentials"), 401
+    except Exception as e:
+        print(f"Login error: {str(e)}")  # Debug
+        return jsonify(success=False, message="Server error"), 500
 
 @app.route('/api/logout', methods=['POST'])
 # Endpoint for user logout
@@ -237,4 +251,20 @@ def change_email():
     return jsonify({"message": "Email updated successfully"})
 
 if __name__ == '__main__':
-    app.run(port=5002, debug=True)
+    app.run(host='0.0.0.0', port=5002, debug=True)
+
+# import logging
+# logging.basicConfig(level=logging.DEBUG)
+
+# @app.errorhandler(Exception)
+# def handle_exception(e):
+#     app.logger.exception("Unhandled Exception:")
+#     return jsonify({"error": str(e)}), 500
+
+# if __name__ == '__main__':
+#     import argparse
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('--port', default=5002, type=int)
+#     args = parser.parse_args()
+    
+#     app.run(host='0.0.0.0', port=args.port, debug=True)

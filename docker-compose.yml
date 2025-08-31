@@ -1,0 +1,49 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  main-backend:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "5001:5001"  # host:container
+    volumes:
+      - .:/app
+      - ./roasted.db:/roasted.db
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=sqlite:///roasted.db
+      - PORT=5001
+
+  admin-backend:
+    build: ./backend
+    env_file:
+      - .env
+    ports:
+      - "5002:5002"  # host:container
+    volumes:
+      - ./backend:/app
+      - ./roasted.db:/roasted.db
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=sqlite:///roasted.db
+      - PORT=5002
+    depends_on:
+      - main-backend
+    container_name: admin-backend
+
+  admin-frontend:
+    build: ./roasted-admin
+    env_file:
+      - .env
+    ports:
+      - "3001:3000"  # host:container (external:internal)
+    volumes:
+      - ./roasted-admin:/app
+      - /app/node_modules
+    depends_on:
+      - admin-backend
+    environment:
+      - REACT_APP_API_URL=http://admin-backend:5002
+      - PORT=3000

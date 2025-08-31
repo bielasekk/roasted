@@ -169,9 +169,7 @@ def report():
         enc_reporter = encrypt(reporter)
         enc_abusive_author = encrypt(abusive_author)
         enc_url = encrypt(url)
-
-        print("Inserting report with values:")
-        print(f"Text: {enc_report_text}, Reporter: {enc_reporter}, Author: {enc_abusive_author}, URL: {enc_url}")
+    
         try:
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
@@ -217,6 +215,14 @@ def tweet():
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)}), 500
     
+# if __name__ == '__main__':
+#     debug_mode = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1", "yes")
+#     app.run(host='0.0.0.0', port=5001, debug=debug_mode)
+
 if __name__ == '__main__':
-    debug_mode = os.getenv("FLASK_DEBUG", "False").lower() in ("true", "1", "yes")
-    app.run(host='0.0.0.0', port=5001, debug=debug_mode)
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port', default=5001, type=int)
+    args = parser.parse_args()
+    
+    app.run(host='0.0.0.0', port=args.port, debug=True)

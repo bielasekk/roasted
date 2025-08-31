@@ -6,8 +6,11 @@ const LoginPage = ({ isLoggedIn, onLoginToggle }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  // const BACKEND_URL = process.env.REACT_APP_API_URL || "http://localhost:5002";
 
   const handleLogin = async () => {
+    // console.log("Attempting login with:", { username, password });
+    // console.log("Backend URL:", BACKEND_URL);
     setError(null);
     try {
       const res = await fetch("/api/login", {

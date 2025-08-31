@@ -10,9 +10,13 @@ import Settings from "./components/Settings";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
+  // const BACKEND_URL = process.env.REACT_APP_API_URL || "http://localhost:5002";
+  // console.log("Backend URL:", BACKEND_URL);
+  // console.log("Environment:", process.env.NODE_ENV);
+  // console.log("All env vars:", process.env);
 
   useEffect(() => {
-    fetch("http://localhost:5002/api/check-session", { credentials: "include" })
+    fetch("/api/check-session", { credentials: "include" })
       .then(res => res.json())
       .then(data => setIsLoggedIn(data.logged_in))
       .catch(() => setIsLoggedIn(false));
@@ -20,7 +24,7 @@ function App() {
 
   const handleLogin = () => setIsLoggedIn(true);
   const handleLogout = () => {
-    fetch("http://localhost:5002/api/logout", {
+    fetch("/api/logout", {
       method: "POST",
       credentials: "include"
     }).then(() => setIsLoggedIn(false));
