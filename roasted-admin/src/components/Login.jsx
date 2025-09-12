@@ -19,7 +19,7 @@ const LoginPage = ({ isLoggedIn, onLoginToggle }) => {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        onLoginToggle(); // successful login, toggle state in App.js
+        onLoginToggle();
       } else {
         setError(data.message || "Login failed");
       }

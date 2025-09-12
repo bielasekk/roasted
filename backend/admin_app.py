@@ -38,15 +38,6 @@ def get_reports():
         conn = get_db_connection()
         c = conn.cursor()
         
-        # Debug: Check if table exists and has data
-        c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='reports'")
-        table_exists = c.fetchone()
-        print(f"Reports table exists: {table_exists is not None}")
-        
-        c.execute("SELECT COUNT(*) FROM reports")
-        count = c.fetchone()[0]
-        print(f"Total reports in database: {count}")
-        
         c.execute("SELECT id, report_text, reporter, abusive_author, url, timestamp, flag FROM reports ORDER BY id DESC")
         reports = c.fetchall()
         conn.close()
@@ -130,7 +121,7 @@ def get_report_stats():
         counts = defaultdict(int)
 
         for (ts,) in timestamps:
-            # Parse timestamp to datetime.date (adjust if your timestamps include time)
+            # Parse timestamp to datetime.date
             dt = datetime.datetime.fromisoformat(ts).date()
             if dt in last_7_days:
                 counts[dt.isoformat()] += 1

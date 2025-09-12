@@ -14,7 +14,7 @@ import {
 import { LineChart } from "@mui/x-charts/LineChart";
 
 // Utility to extract domain from URL
-const extractDomain = (url) => {
+export const extractDomain = (url) => {
   try {
     const u = new URL(url);
     return u.hostname.replace("www.", "");
@@ -24,7 +24,7 @@ const extractDomain = (url) => {
 };
 
 // Helper to format last 7 days dates as "DD.MM"
-const getLast7Days = () => {
+export const getLast7Days = () => {
   const dates = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
@@ -82,8 +82,6 @@ const Statistics = () => {
         // Count reports per day for chart
         const last7Days = getLast7Days();
         const reportsByDay = last7Days.map((dateStr) => {
-          // dateStr like '11.08'
-          // parse to actual date for matching
           const [day, month] = dateStr.split(".");
           return filtered.filter((r) => {
             const d = new Date(r.timestamp);

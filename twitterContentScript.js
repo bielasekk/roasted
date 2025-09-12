@@ -27,7 +27,7 @@ function initObserver() {
     if (observer) return;
     console.log("X.com post observer loaded");
 
-    // ====== Create a proper stylesheet ======
+    // Create a proper stylesheet
     const style = document.createElement("style");
     style.textContent = `
     #postResultBox {
@@ -80,7 +80,7 @@ function initObserver() {
     `;
     document.head.appendChild(style);
 
-    // ====== Create inline result box (hidden by default) ======
+    // Create inline result box (hidden by default)
     const postResultBox = document.createElement("div");
     postResultBox.id = "postResultBox";
     postResultBox.innerHTML = `
@@ -93,7 +93,7 @@ function initObserver() {
 
     let postResultMessage, rewriteBtn, postAnywayBtn;
 
-    // ====== Run ML check ======
+    // Run ML check
     async function runMLCheck(postText) {
         try {
             const response = await fetch("http://localhost:5001/predict", {
@@ -111,7 +111,7 @@ function initObserver() {
         }
     }
 
-    // ====== Observe DOM for post button ======
+    // Observe DOM for post button 
     observer = new MutationObserver(() => {
         const postButton = document.querySelector('button[data-testid="tweetButtonInline"]');
         const composer = document.querySelector('div[role="textbox"]')?.closest("div");

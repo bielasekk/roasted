@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 
 const Settings = () => {
-  // ---- Password states ----
+  // Password states
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -19,14 +19,14 @@ const Settings = () => {
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState("");
 
-  // ---- Email states ----
+  // Email states
   const [oldEmail, setOldEmail] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [loadingEmail, setLoadingEmail] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [emailSuccess, setEmailSuccess] = useState("");
 
-  // ---- Change password ----
+  // Change password
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     setPasswordError("");
@@ -68,7 +68,7 @@ const Settings = () => {
     }
   };
 
-  // ---- Cancel password form ----
+  // Cancel password form
   const handlePasswordCancel = () => {
     setOldPassword("");
     setNewPassword("");
@@ -77,7 +77,7 @@ const Settings = () => {
     setPasswordSuccess("");
   };
 
-  // ---- Change email ----
+  // Change email
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setEmailError("");
@@ -118,7 +118,7 @@ const Settings = () => {
     }
   };
 
-  // ---- Cancel email form ----
+  // Cancel email form
   const handleEmailCancel = () => {
     setOldEmail("");
     setNewEmail("");
@@ -139,12 +139,12 @@ const Settings = () => {
         </Typography>
 
         {emailError && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" role="alert" sx={{ mb: 2 }}>
             {emailError}
           </Alert>
         )}
         {emailSuccess && (
-          <Alert severity="success" sx={{ mb: 2 }}>
+          <Alert severity="success" role="alert" sx={{ mb: 2 }}>
             {emailSuccess}
           </Alert>
         )}
@@ -196,12 +196,12 @@ const Settings = () => {
         </Typography>
 
         {passwordError && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" role="alert" sx={{ mb: 2 }}>
             {passwordError}
           </Alert>
         )}
         {passwordSuccess && (
-          <Alert severity="success" sx={{ mb: 2 }}>
+          <Alert severity="success" role="alert" sx={{ mb: 2 }}>
             {passwordSuccess}
           </Alert>
         )}
@@ -223,7 +223,7 @@ const Settings = () => {
           onChange={(e) => setNewPassword(e.target.value)}
         />
         <TextField
-          label="Confirm New Password"
+          label="Confirm Password"
           type="password"
           fullWidth
           margin="normal"
